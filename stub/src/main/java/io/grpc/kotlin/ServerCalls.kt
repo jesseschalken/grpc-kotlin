@@ -30,6 +30,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -276,8 +277,8 @@ object ServerCalls {
       override fun onMessage(message: RequestT) {
         if (isReceiving) {
           try {
-            if (!requestsChannel.offer(message)) {
-              throw Status.INTERNAL
+            requestsChannel.trySend(message).onFailure {
+              throw it ?: Status.INTERNAL
                 .withDescription(
                   "onMessage should never be called when requestsChannel is unready"
                 )

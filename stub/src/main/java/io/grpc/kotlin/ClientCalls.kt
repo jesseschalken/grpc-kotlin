@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -285,8 +286,8 @@ object ClientCalls {
       clientCall.start(
         object : ClientCall.Listener<ResponseT>() {
           override fun onMessage(message: ResponseT) {
-            if (!responses.offer(message)) {
-              throw AssertionError("onMessage should never be called until responses is ready")
+            responses.trySend(message).onFailure {
+              throw it ?: AssertionError("onMessage should never be called until responses is ready")
             }
           }
 
