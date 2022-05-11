@@ -65,6 +65,7 @@ import org.junit.runners.JUnit4
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.channels.trySendBlocking
 
 @ExperimentalCoroutinesApi
 @RunWith(JUnit4::class)
@@ -365,7 +366,7 @@ class ServerCallsTest : AbstractCallsTest() {
     val responseChannel = Channel<HelloReply>()
     clientCall.start(object: ClientCall.Listener<HelloReply>() {
       override fun onMessage(message: HelloReply) {
-        responseChannel.sendBlocking(message)
+        responseChannel.trySendBlocking(message).getOrThrow()
       }
 
       override fun onClose(status: Status, trailers: Metadata) {
